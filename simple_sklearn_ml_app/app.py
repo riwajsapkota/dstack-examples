@@ -54,7 +54,7 @@ months_ctrl = ctrl.ComboBox(['Oct', 'Nov', 'Dec'], label="Month")
 churn_ctrl = ctrl.CheckBox(label="Churn", selected=True, require_apply=False)
 
 
-def app_handler(regions_ctrl: ctrl.ComboBox, months_ctrl: ctrl.ComboBox, churn_ctrl: ctrl.CheckBox):
+def app_handler(self: ctrl.Output, regions_ctrl: ctrl.ComboBox, months_ctrl: ctrl.ComboBox, churn_ctrl: ctrl.CheckBox):
     x1, x1a = get_data()
     y1_pred = get_model().predict(x1a)
     data = x1.copy()
@@ -66,10 +66,11 @@ def app_handler(regions_ctrl: ctrl.ComboBox, months_ctrl: ctrl.ComboBox, churn_c
     data = data[(data["Predicted Churn"] == ("Yes" if churn_ctrl.selected else "No"))]
     data = data[(data["Region"] == regions_ctrl.value())]
     data = data[(data["RenewalMonth"] == months_ctrl.value())]
-    return data
+    self.data = data
 
 
-app = ds.app(app_handler, regions_ctrl=regions_ctrl, months_ctrl=months_ctrl, churn_ctrl=churn_ctrl)
+app = ds.app(controls=[regions_ctrl, months_ctrl, churn_ctrl],
+             outputs=[ctrl.Output(handler=app_handler)])
 
 url = ds.push("simple_sklearn_ml_app", app)
 print(url)

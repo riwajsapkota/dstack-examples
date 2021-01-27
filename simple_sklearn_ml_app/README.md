@@ -73,7 +73,7 @@ import pandas as pd
 
 
 def get_model():
-    return ds.pull("churn_demo/lr_model")
+    return ds.pull("simple_sklearn_ml_model")
 
 
 def transform(X, countries, sectors):
@@ -123,7 +123,7 @@ months_ctrl = ctrl.ComboBox(['Oct', 'Nov', 'Dec'], label="Month")
 churn_ctrl = ctrl.CheckBox(label="Churn", selected=True, require_apply=False)
 
 
-def app_handler(regions_ctrl: ctrl.ComboBox, months_ctrl: ctrl.ComboBox, churn_ctrl: ctrl.CheckBox):
+def app_handler(self: ctrl.Output, regions_ctrl: ctrl.ComboBox, months_ctrl: ctrl.ComboBox, churn_ctrl: ctrl.CheckBox):
     x1, x1a = get_data()
     y1_pred = get_model().predict(x1a)
     data = x1.copy()
@@ -135,10 +135,11 @@ def app_handler(regions_ctrl: ctrl.ComboBox, months_ctrl: ctrl.ComboBox, churn_c
     data = data[(data["Predicted Churn"] == ("Yes" if churn_ctrl.selected else "No"))]
     data = data[(data["Region"] == regions_ctrl.value())]
     data = data[(data["RenewalMonth"] == months_ctrl.value())]
-    return data
+    self.data = data
 
 
-app = ds.app(app_handler, regions_ctrl=regions_ctrl, months_ctrl=months_ctrl, churn_ctrl=churn_ctrl)
+app = ds.app(controls=[regions_ctrl, months_ctrl, churn_ctrl],
+             outputs=[ctrl.Output(handler=app_handler)])
 
 url = ds.push("simple_sklearn_ml_app", app)
 print(url)
@@ -146,6 +147,6 @@ print(url)
 
 Now, if we run this code, and open the URL from the output, we'll see the following:
 
-![](https://gblobscdn.gitbook.com/assets%2F-LyOZaAwuBdBTEPqqlZy%2F-MPsRNaSLV_cIawC-uG-%2F-MPs_V1bx18-fR9SDOm4%2FScreenshot%202020-12-31%20at%2012.36.11.png?alt=media&token=3035ec62-9e0a-41e9-b7b7-474915cec203)
+![](https://gblobscdn.gitbook.com/assets%2F-LyOZaAwuBdBTEPqqlZy%2F-MRJyFsIUI6nGlhft-QX%2F-MRJzsz_z7IRNJk_26jy%2Fds_simple_sklearn_ml_app.png?alt=media&token=5dc18a81-f4d9-4544-9d78-72ffdd388de9)
 
 Now, if you push another model, the application will immediately use the new version.

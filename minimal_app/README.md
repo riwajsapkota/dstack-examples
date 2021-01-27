@@ -21,16 +21,17 @@ import plotly.graph_objects as go
 import pandas_datareader.data as web
 
 
-def get_chart(symbols: ctrl.ComboBox):
+def output_handler(self: ctrl.Output, symbols: ctrl.ComboBox):
     start = datetime.today() - timedelta(days=30)
     end = datetime.today()
     df = web.DataReader(symbols.value(), 'yahoo', start, end)
     fig = go.Figure(
         data=[go.Candlestick(x=df.index, open=df['Open'], high=df['High'], low=df['Low'], close=df['Close'])])
-    return fig
+    self.data = fig
 
 
-app = ds.app(get_chart, symbols=ctrl.ComboBox(["FB", "AMZN", "AAPL", "NFLX", "GOOG"]))
+app = ds.app(controls=[ctrl.ComboBox(data=["FB", "AMZN", "AAPL", "NFLX", "GOOG"])],
+             outputs=[ctrl.Output(handler=output_handler)])
 
 result = ds.push("minimal_app", app)
 print(result.url)
@@ -52,13 +53,13 @@ Services – using the pandas_datareader package), makes a Candlestick chart (us
 resulting figure.
 
 ```python
-def get_chart(symbols: ctrl.ComboBox):
+def output_handler(self: ctrl.Output, symbols: ctrl.ComboBox):
     start = datetime.today() - timedelta(days=30)
     end = datetime.today()
     df = web.DataReader(symbols.value(), 'yahoo', start, end)
     fig = go.Figure(
         data=[go.Candlestick(x=df.index, open=df['Open'], high=df['High'], low=df['Low'], close=df['Close'])])
-    return fig
+    self.data = fig
 ```
 
 ### User controls and application
@@ -69,7 +70,8 @@ application. The application contains information on the function that produces 
 `dstack.controls.ComboBox` to the name of the argument of the function (`symbols`).
 
 ```python
-app = ds.app(get_chart, symbols=ctrl.ComboBox(["FB", "AMZN", "AAPL", "NFLX", "GOOG"]))
+app = ds.app(controls=[ctrl.ComboBox(data=["FB", "AMZN", "AAPL", "NFLX", "GOOG"])],
+             outputs=[ctrl.Output(handler=output_handler)])
 ```
 
 ### Deploy application

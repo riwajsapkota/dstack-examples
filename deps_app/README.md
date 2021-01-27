@@ -30,10 +30,12 @@ Here's `app.py`:
 
 ```python
 import dstack as ds
+import dstack.controls as ctrl
 
 from handlers import fake_handler
 
-app = ds.app(fake_handler, depends=["handlers", "utils"], requirements="requirements.txt")
+app = ds.app(outputs=[ctrl.Output(handler=fake_handler)], depends=["handlers", "utils"],
+             requirements="requirements.txt")
 
 url = ds.push("deps_app", app)
 print(url)
@@ -47,7 +49,7 @@ The `depends` argument may list either local modules and packages or PiPy packag
 line above would be the following:
 
 ```python
-app = ds.app(fake_handler, depends=["numpy", "pandas", "faker==5.5.0", "handlers", "utils"])
+ds.app(outputs=[ctrl.Output(handler=fake_handler)], depends=["numpy", "pandas", "faker==5.5.0", "handlers", "utils"])
 ```
 
 **IMPORTANT**: Note, it's important that when you run `app.py` the root directory is `deps_app` where `handlers`
@@ -57,18 +59,19 @@ Here's `handlers.py`:
 
 ```python
 import pandas as pd
+import dstack.controls as ctrl
 
 from utils.fake_utils import random_names, random_genders, random_dates
 
 
-def fake_handler():
+def fake_handler(self: ctrl.Output):
     size = 100
     df = pd.DataFrame(columns=['First', 'Last', 'Gender', 'Birthdate'])
     df['First'] = random_names('first_names', size)
     df['Last'] = random_names('last_names', size)
     df['Gender'] = random_genders(size)
     df['Birthdate'] = random_dates(start=pd.to_datetime('1940-01-01'), end=pd.to_datetime('2008-01-01'), size=size)
-    return df
+    self.data = df
 ```
 
 Here's `utils/fake_utils.py`:

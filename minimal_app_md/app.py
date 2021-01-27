@@ -15,8 +15,11 @@ def output_handler(self: ctrl.Output, symbols: ctrl.ComboBox):
     self.data = fig
 
 
-app = ds.app(controls=[ctrl.ComboBox(data=["FB", "AMZN", "AAPL", "NFLX", "GOOG"])],
-             outputs=[ctrl.Output(handler=output_handler)])
+symbols = ctrl.ComboBox(data=["FB", "AMZN", "AAPL", "NFLX", "GOOG"])
 
-result = ds.push("minimal_app", app)
+app = ds.app(controls=[symbols],
+             outputs=[ctrl.Output(data=ds.md("Here's a simple application with **Markdown** and a chart.")),
+                      ctrl.Output(handler=output_handler, depends=[symbols])])
+
+result = ds.push("minimal_app_with_md", app)
 print(result.url)

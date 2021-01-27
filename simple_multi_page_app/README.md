@@ -13,7 +13,7 @@ country, then to see a list of companies and their data. The list of countries w
 order to see the data, the user will have to confirm the selection by clicking the `Apply` button. In the second tab,
 the user will be able to see a chart with numbers of purchased licenses per year for the selected country.
 
-![](https://i.ibb.co/ctB9kGY/Screenshot-2020-11-27-at-17-13-35.png)
+![](https://gblobscdn.gitbook.com/assets%2F-LyOZaAwuBdBTEPqqlZy%2F-MRGLmiONvs9iykbQO1a%2F-MRGN11SPpMa-wvFOAHr%2Fds_single_multipage_app_companies.png?alt=media&token=bd1163cd-1f90-4a05-9270-bf1cfe9aa763)
 
 Here's the full code of the application:
 
@@ -34,21 +34,22 @@ def get_regions():
     return df["Region"].unique().tolist()
 
 
-def get_countries_by_region(self: ctrl.ComboBox, regions: ctrl.ComboBox):
+def countries_handler(self: ctrl.ComboBox, regions: ctrl.ComboBox):
     df = get_data()
     self.data = df[df["Region"] == regions.value()]["Country"].unique().tolist()
 
 
 regions = ctrl.ComboBox(data=get_regions, label="Region")
-countries = ctrl.ComboBox(handler=get_countries_by_region, label="Country", depends=[regions], require_apply=True)
+countries = ctrl.ComboBox(handler=countries_handler, label="Country", depends=[regions])
 
 
-def get_data_by_country(regions: ctrl.ComboBox, countries: ctrl.ComboBox):
+def country_output_handler(self: ctrl.Output, countries: ctrl.ComboBox):
     df = get_data()
-    return df[df["Country"] == countries.value()]
+    self.data = df[df["Country"] == countries.value()]
 
 
-data_by_country_app = ds.app(get_data_by_country, regions=regions, countries=countries)
+data_by_country_app = ds.app(controls=[regions, countries],
+                             outputs=[ctrl.Output(handler=country_output_handler, depends=[countries])])
 
 
 def get_companies():
@@ -59,8 +60,7 @@ def get_companies():
 companies = ctrl.ComboBox(data=get_companies, label="Company")
 
 
-@ds.cache()
-def get_data_by_company(companies: ctrl.ComboBox):
+def company_output_handler(self: ctrl.Output, companies: ctrl.ComboBox):
     df = get_data()
     row = df[df["Company"] == companies.value()].filter(["y2015", "y2016", "y2017", "y2018", "y2019"], axis=1)
     row.rename(columns={"y2015": "2015", "y2016": "2016", "y2017": "2017", "y2018": "2018", "y2019": "2019"},
@@ -69,12 +69,13 @@ def get_data_by_company(companies: ctrl.ComboBox):
     col.rename(columns={col.columns[0]: "Licenses"}, inplace=True)
     fig = px.bar(col.reset_index(), x="index", y="Licenses", labels={"index": "Year"})
     fig.update(layout_showlegend=False)
-    return fig
+    self.data = fig
 
 
-data_by_company_app = ds.app(get_data_by_company, companies=companies)
+data_by_company_app = ds.app(controls=[companies],
+                             outputs=[ctrl.Output(handler=company_output_handler)])
 
-frame = ds.frame("simple_multipage_app")
+frame = ds.frame("simple_multi_page_app")
 frame.add(data_by_country_app, params={"Companies": ds.tab()})
 frame.add(data_by_company_app, params={"Licenses": ds.tab()})
 result = frame.push()
@@ -110,11 +111,11 @@ def get_regions():
     return df["Region"].unique().tolist()
 ```
 
-Then, we define a function get_countries_by_region that updates the combo box `"Country"` based on the selection of the
+Then, we define a function `countries_handler` that updates the combo box `"Country"` based on the selection of the
 combo box `"Region"`.
 
 ```python
-def get_countries_by_region(self: ctrl.ComboBox, regions: ctrl.ComboBox):
+def countries_handler(self: ctrl.ComboBox, regions: ctrl.ComboBox):
     df = get_data()
     self.data = df[df["Region"] == regions.value()]["Country"].unique().tolist()
 ```
@@ -126,11 +127,8 @@ as
 
 ```python
 regions = ctrl.ComboBox(data=get_regions, label="Region")
-countries = ctrl.ComboBox(handler=get_countries_by_region, label="Country", depends=[regions], require_apply=True)
+countries = ctrl.ComboBox(handler=countries_handler, label="Country", depends=[regions])
 ```
-
-Since we set attribute `require_apply` to `True` in the second control, the resulting application will prompt the user
-to click the Apply button to see the output of the application.
 
 ### Application output
 
@@ -138,9 +136,9 @@ Now, we can define the function `get_data_by_country that produces the output of
 values in our combo boxes.
 
 ```python
-def get_data_by_country(regions: ctrl.ComboBox, countries: ctrl.ComboBox):
+def country_output_handler(self: ctrl.Output, countries: ctrl.ComboBox):
     df = get_data()
-    return df[df["Country"] == countries.value()]
+    self.data = df[df["Country"] == countries.value()]
 ```
 
 ### Application
@@ -149,7 +147,8 @@ Finally, we create an application by using the `dstack.app()` function and passi
 and binding its arguments to our controls `regions` and `countries`.
 
 ```python
-data_by_country_app = ds.app(get_data_by_country, regions=regions, countries=countries)
+data_by_country_app = ds.app(controls=[regions, countries],
+                             outputs=[ctrl.Output(handler=country_output_handler, depends=[countries])])
 ```
 
 The application for the first tab is ready, let's move on and create the other one.
@@ -167,8 +166,7 @@ def get_companies():
 
 ### User controls
 
-Then, we define this combo box and set require_apply to False so the tab doesn't require the user to click `Apply` to
-see the result.
+Then, we define this combo box:
 
 ```python
 companies = ctrl.ComboBox(data=get_companies, label="Company")
@@ -180,8 +178,7 @@ Then, we define a function `get_data_by_company` that produces a `Plotly` chart 
 the selected company grouped by the year.
 
 ```python
-@ds.cache()
-def get_data_by_company(companies: ctrl.ComboBox):
+def company_output_handler(self: ctrl.Output, companies: ctrl.ComboBox):
     df = get_data()
     row = df[df["Company"] == companies.value()].filter(["y2015", "y2016", "y2017", "y2018", "y2019"], axis=1)
     row.rename(columns={"y2015": "2015", "y2016": "2016", "y2017": "2017", "y2018": "2018", "y2019": "2019"},
@@ -190,10 +187,8 @@ def get_data_by_company(companies: ctrl.ComboBox):
     col.rename(columns={col.columns[0]: "Licenses"}, inplace=True)
     fig = px.bar(col.reset_index(), x="index", y="Licenses", labels={"index": "Year"})
     fig.update(layout_showlegend=False)
-    return fig
+    self.data = fig
 ```
-
-Here, we also use the annotation `@dstack.cache()` to prevent the function to be called when it is not necessary.
 
 ### Application
 
@@ -201,7 +196,8 @@ Now, we're ready to create the second application by using the `dstack.app()` fu
 function `get_data_by_company` and bind the name of its argument to the combo box.
 
 ```python
-data_by_company_app = ds.app(get_data_by_company, companies=companies)
+data_by_company_app = ds.app(controls=[companies],
+                             outputs=[ctrl.Output(handler=company_output_handler)])
 ```
 
 ### Deploy applications
@@ -211,7 +207,7 @@ application, we have to first create a frame (by using the `dstack.frame()` func
 applications (by using the `dstack.stack.StackFrame.add()` function).
 
 ```python
-frame = ds.frame("simple_multipage_app")
+frame = ds.frame("simple_multi_page_app")
 frame.add(data_by_country_app, params={"Companies": ds.tab()})
 frame.add(data_by_company_app, params={"Licenses": ds.tab()})
 ```

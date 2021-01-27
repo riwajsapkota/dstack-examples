@@ -14,21 +14,22 @@ def get_regions():
     return df["Region"].unique().tolist()
 
 
-def get_countries_by_region(self: ctrl.ComboBox, regions: ctrl.ComboBox):
+def countries_handler(self: ctrl.ComboBox, regions: ctrl.ComboBox):
     df = get_data()
     self.data = df[df["Region"] == regions.value()]["Country"].unique().tolist()
 
 
 regions = ctrl.ComboBox(data=get_regions, label="Region")
-countries = ctrl.ComboBox(handler=get_countries_by_region, label="Country", depends=[regions], require_apply=True)
+countries = ctrl.ComboBox(handler=countries_handler, label="Country", depends=[regions])
 
 
-def get_data_by_country(regions: ctrl.ComboBox, countries: ctrl.ComboBox):
+def country_output_handler(self: ctrl.Output, countries: ctrl.ComboBox):
     df = get_data()
-    return df[df["Country"] == countries.value()]
+    self.data = df[df["Country"] == countries.value()]
 
 
-data_by_country_app = ds.app(get_data_by_country, regions=regions, countries=countries)
+data_by_country_app = ds.app(controls=[regions, countries],
+                             outputs=[ctrl.Output(handler=country_output_handler, depends=[countries])])
 
 
 def get_companies():
@@ -39,8 +40,7 @@ def get_companies():
 companies = ctrl.ComboBox(data=get_companies, label="Company")
 
 
-@ds.cache()
-def get_data_by_company(companies: ctrl.ComboBox):
+def company_output_handler(self: ctrl.Output, companies: ctrl.ComboBox):
     df = get_data()
     row = df[df["Company"] == companies.value()].filter(["y2015", "y2016", "y2017", "y2018", "y2019"], axis=1)
     row.rename(columns={"y2015": "2015", "y2016": "2016", "y2017": "2017", "y2018": "2018", "y2019": "2019"},
@@ -49,12 +49,13 @@ def get_data_by_company(companies: ctrl.ComboBox):
     col.rename(columns={col.columns[0]: "Licenses"}, inplace=True)
     fig = px.bar(col.reset_index(), x="index", y="Licenses", labels={"index": "Year"})
     fig.update(layout_showlegend=False)
-    return fig
+    self.data = fig
 
 
-data_by_company_app = ds.app(get_data_by_company, companies=companies)
+data_by_company_app = ds.app(controls=[companies],
+                             outputs=[ctrl.Output(handler=company_output_handler)])
 
-frame = ds.frame("simple_multipage_app")
+frame = ds.frame("simple_multi_page_app")
 frame.add(data_by_country_app, params={"Companies": ds.tab()})
 frame.add(data_by_company_app, params={"Licenses": ds.tab()})
 result = frame.push()
