@@ -15,20 +15,20 @@ def get_regions():
 
 def countries_handler(self: ctrl.ComboBox, regions: ctrl.ComboBox):
     df = get_data()
-    self.data = df[df["Region"] == regions.value()]["Country"].unique().tolist()
+    self.items = df[df["Region"] == regions.value()]["Country"].unique().tolist()
 
 
-regions = ctrl.ComboBox(data=get_regions, label="Region")
-countries = ctrl.ComboBox(handler=countries_handler, label="Country", depends=[regions])
+regions = ctrl.ComboBox(items=get_regions, label="Region")
+countries = ctrl.ComboBox(handler=countries_handler, label="Country", multiple=True, depends=[regions])
 
 
 def output_handler(self: ctrl.Output, countries: ctrl.ComboBox):
     df = get_data()
-    self.data = df[df["Country"] == countries.value()]
+    self.data = df[df["Country"].isin(countries.value())]
 
 
-app = ds.app(controls=[regions, countries, ctrl.Apply()],
+app = ds.app(controls=[regions, countries],
              outputs=[ds.Output(handler=output_handler, depends=[countries])])
 
-result = ds.push('dependant_controls_app', app)
+result = ds.push('combo_box', app)
 print(result.url)

@@ -16,10 +16,10 @@ def get_regions():
 
 def countries_handler(self: ctrl.ComboBox, regions: ctrl.ComboBox):
     df = get_data()
-    self.data = df[df["Region"] == regions.value()]["Country"].unique().tolist()
+    self.items = df[df["Region"] == regions.value()]["Country"].unique().tolist()
 
 
-regions = ctrl.ComboBox(data=get_regions, label="Region")
+regions = ctrl.ComboBox(items=get_regions, label="Region")
 countries = ctrl.ComboBox(handler=countries_handler, label="Country", depends=[regions])
 
 
@@ -37,7 +37,7 @@ def get_companies():
     return df["Company"].unique().tolist()
 
 
-companies = ctrl.ComboBox(data=get_companies, label="Company")
+companies = ctrl.ComboBox(items=get_companies, label="Company")
 
 
 def company_output_handler(self: ctrl.Output, companies: ctrl.ComboBox):
@@ -55,7 +55,7 @@ def company_output_handler(self: ctrl.Output, companies: ctrl.ComboBox):
 data_by_company_app = ds.app(controls=[companies],
                              outputs=[ctrl.Output(handler=company_output_handler)])
 
-frame = ds.frame("simple_multi_page_app")
+frame = ds.frame("tabs")
 frame.add(data_by_country_app, params={"Companies": ds.tab()})
 frame.add(data_by_company_app, params={"Licenses": ds.tab()})
 result = frame.push()

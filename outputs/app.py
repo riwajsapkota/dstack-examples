@@ -15,17 +15,17 @@ def get_regions():
     return df["Region"].unique().tolist()
 
 
-regions = ctrl.ComboBox(data=get_regions, label="Region")
+regions = ctrl.ComboBox(items=get_regions, label="Region")
 
 
 def countries_handler(self: ctrl.ComboBox, regions: ctrl.ComboBox):
     df = get_data()
-    self.data = df[df["Region"] == regions.value()]["Country"].unique().tolist()
+    self.items = df[df["Region"] == regions.value()]["Country"].unique().tolist()
 
 
 def get_companies_by_country(self: ctrl.ComboBox, countries: ctrl.ComboBox):
     df = get_data()
-    self.data = df[df["Country"] == countries.value()]["Company"].unique().tolist()
+    self.items = df[df["Country"] == countries.value()]["Company"].unique().tolist()
 
 
 @ds.cache()
@@ -58,5 +58,5 @@ company_chart = ds.Output(handler=company_output_handler, depends=[companies])
 app = ds.app(controls=[regions, countries, companies],
              outputs=[md_output, countries_output, company_chart])
 
-url = ds.push("simple_multi_output_app", app)
+url = ds.push("outputs", app)
 print(url)

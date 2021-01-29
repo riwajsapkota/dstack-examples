@@ -4,7 +4,7 @@ import pandas as pd
 
 
 def get_model():
-    return ds.pull("simple_sklearn_ml_model")
+    return ds.pull("sklearn_model")
 
 
 def transform(X, countries, sectors):
@@ -72,5 +72,5 @@ def app_handler(self: ctrl.Output, regions_ctrl: ctrl.ComboBox, months_ctrl: ctr
 app = ds.app(controls=[regions_ctrl, months_ctrl, churn_ctrl],
              outputs=[ctrl.Output(handler=app_handler)])
 
-url = ds.push("simple_sklearn_ml_app", app)
+url = ds.push("sklearn", app)
 print(url)
