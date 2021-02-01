@@ -5,8 +5,8 @@ import pandas as pd
 
 def app_handler(self: ctrl.Output, uploader: ctrl.FileUploader):
     if len(uploader.uploads) > 0:
-        u = uploader.uploads[0]
-        self.data = pd.read_csv(u.open()).head(100)
+        with uploader.uploads[0].open() as f:
+            self.data = pd.read_csv(f).head(100)
     else:
         self.data = ds.md("No file selected")
 
@@ -14,5 +14,5 @@ def app_handler(self: ctrl.Output, uploader: ctrl.FileUploader):
 app = ds.app(controls=[ctrl.FileUploader(label="Select a CSV file")],
              outputs=[ctrl.Output(handler=app_handler)])
 
-url = ds.push("file_uploader", app)
+url = ds.push("controls/file_uploader", app)
 print(url)
