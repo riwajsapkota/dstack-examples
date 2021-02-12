@@ -1,18 +1,21 @@
 import dstack as ds
-import dstack.controls as ctrl
 import pandas as pd
 
 
-def app_handler(self: ctrl.Output, uploader: ctrl.FileUploader):
+def app_handler(self: ds.Output, uploader: ds.Uploader):
     if len(uploader.uploads) > 0:
         with uploader.uploads[0].open() as f:
+            self.label = uploader.uploads[0].file_name
             self.data = pd.read_csv(f).head(100)
     else:
-        self.data = ds.md("No file selected")
+        self.label = "No file selected"
+        self.data = None
 
 
-app = ds.app(controls=[ctrl.FileUploader(label="Select a CSV file")],
-             outputs=[ctrl.Output(handler=app_handler)])
+app = ds.app()
 
-url = ds.push("controls/file_uploader", app)
+controls = app.uploader(label="Select a CSV file")
+outputs = app.output(handler=app_handler)
+
+url = app.deploy("controls/file_uploader")
 print(url)

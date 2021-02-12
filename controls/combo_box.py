@@ -1,27 +1,31 @@
 from datetime import datetime, timedelta
 
-import dstack.controls as ctrl
 import dstack as ds
 import plotly.express as px
 import pandas_datareader as pdr
 
-
-def ticker_handler(self: ctrl.ComboBox):
-    self.items = ['FB', 'AMZN', 'AAPL', 'NFLX', 'GOOG']
+app = ds.app()
 
 
-def output_handler(self: ctrl.Output, ticker: ctrl.ComboBox):
-    if ticker.selected > -1:
+def ticker_handler(self: ds.Select):
+    self.items = []
+
+
+def output_handler(self: ds.Output, ticker: ds.Select):
+    if ticker.selected is not None:
+        symbol = ticker.value()
         start = datetime.today() - timedelta(days=30)
         end = datetime.today()
-        df = pdr.data.DataReader(ticker.items[ticker.selected], 'yahoo', start, end)
+        df = pdr.data.DataReader(symbol, 'yahoo', start, end)
+        self.label = symbol
         self.data = px.line(df, x=df.index, y=df['High'])
     else:
-        self.data = ds.md("No ticker selected")
+        self.label = "No ticker selected"
+        self.data = None
 
 
-app = ds.app(controls=[ctrl.ComboBox(label="Select ticker", handler=ticker_handler)],
-             outputs=[ctrl.Output(handler=output_handler)])
+ticker = app.select(label="Select ticker", handler=ticker_handler)
+output = app.output(handler=output_handler, depends=[ticker])
 
-result = ds.push('controls/combo_box', app)
+result = app.deploy("controls/combo_box")
 print(result.url)

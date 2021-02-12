@@ -1,4 +1,3 @@
-import dstack.controls as ctrl
 import dstack as ds
 import pandas as pd
 
@@ -13,22 +12,23 @@ def get_regions():
     return df["Region"].unique().tolist()
 
 
-def countries_handler(self: ctrl.ComboBox, regions: ctrl.ComboBox):
+def countries_handler(self: ds.Select, regions: ds.Select):
     df = get_data()
     self.items = df[df["Region"] == regions.value()]["Country"].unique().tolist()
 
 
-regions = ctrl.ComboBox(items=get_regions, label="Region")
-countries = ctrl.ComboBox(handler=countries_handler, label="Country", multiple=True, depends=[regions])
+app = ds.app()
+
+regions = app.select(items=get_regions, label="Region")
+countries = app.select(handler=countries_handler, label="Country", multiple=True, depends=[regions])
 
 
-def output_handler(self: ctrl.Output, countries: ctrl.ComboBox):
+def output_handler(self: ds.Output, countries: ds.Select):
     df = get_data()
     self.data = df[df["Country"].isin(countries.value())]
 
 
-app = ds.app(controls=[regions, countries],
-             outputs=[ds.Output(handler=output_handler, depends=[countries])])
+output = app.output(handler=output_handler, depends=[countries])
 
-result = ds.push('combo_box', app)
+result = app.deploy("combo_box")
 print(result.url)

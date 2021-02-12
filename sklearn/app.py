@@ -1,5 +1,4 @@
 import dstack as ds
-import dstack.controls as ctrl
 import pandas as pd
 
 
@@ -49,12 +48,14 @@ x1, x1a = get_data()
 
 months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
-regions_ctrl = ctrl.ComboBox(x1["Region"].unique().tolist(), label="Region")
-months_ctrl = ctrl.ComboBox(['Oct', 'Nov', 'Dec'], label="Month")
-churn_ctrl = ctrl.CheckBox(label="Churn", selected=True, require_apply=False)
+app = ds.app()
+
+regions_ctrl = app.select(x1["Region"].unique().tolist(), label="Region")
+months_ctrl = app.select(['Oct', 'Nov', 'Dec'], label="Month")
+churn_ctrl = app.checkbox(label="Churn", selected=True)
 
 
-def app_handler(self: ctrl.Output, regions_ctrl: ctrl.ComboBox, months_ctrl: ctrl.ComboBox, churn_ctrl: ctrl.CheckBox):
+def app_handler(self: ds.Output, regions_ctrl: ds.Select, months_ctrl: ds.Select, churn_ctrl: ds.Checkbox):
     x1, x1a = get_data()
     y1_pred = get_model().predict(x1a)
     data = x1.copy()
@@ -69,8 +70,7 @@ def app_handler(self: ctrl.Output, regions_ctrl: ctrl.ComboBox, months_ctrl: ctr
     self.data = data
 
 
-app = ds.app(controls=[regions_ctrl, months_ctrl, churn_ctrl],
-             outputs=[ctrl.Output(handler=app_handler)])
+_ = app.output(handler=app_handler, depends=[regions_ctrl, months_ctrl, churn_ctrl])
 
-url = ds.push("sklearn", app)
+url = app.deploy("sklearn")
 print(url)

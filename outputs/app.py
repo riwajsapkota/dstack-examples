@@ -1,4 +1,3 @@
-import dstack.controls as ctrl
 import dstack as ds
 import pandas as pd
 import plotly.express as px
@@ -15,27 +14,27 @@ def get_regions():
     return df["Region"].unique().tolist()
 
 
-regions = ctrl.ComboBox(items=get_regions, label="Region")
+app = ds.app()
+
+regions = app.select(items=get_regions, label="Region")
 
 
-def countries_handler(self: ctrl.ComboBox, regions: ctrl.ComboBox):
+def countries_handler(self: ds.Select, regions: ds.Select):
     df = get_data()
     self.items = df[df["Region"] == regions.value()]["Country"].unique().tolist()
 
 
-def get_companies_by_country(self: ctrl.ComboBox, countries: ctrl.ComboBox):
+def get_companies_by_country(self: ds.Select, countries: ds.Select):
     df = get_data()
     self.items = df[df["Country"] == countries.value()]["Company"].unique().tolist()
 
 
-@ds.cache()
-def country_output_handler(self: ds.Output, countries: ctrl.ComboBox):
+def country_output_handler(self: ds.Output, countries: ds.Select):
     df = get_data()
     self.data = df[df["Country"] == countries.value()]
 
 
-@ds.cache()
-def company_output_handler(self: ds.Output, companies: ctrl.ComboBox):
+def company_output_handler(self: ds.Output, companies: ds.Select):
     company = companies.value()
     df = get_data()
     row = df[df["Company"] == company].filter(["y2015", "y2016", "y2017", "y2018", "y2019"], axis=1)
@@ -49,14 +48,11 @@ def company_output_handler(self: ds.Output, companies: ctrl.ComboBox):
     self.label = company
 
 
-countries = ctrl.ComboBox(handler=countries_handler, label="Country", depends=[regions])
-companies = ctrl.ComboBox(handler=get_companies_by_country, label="Company", depends=[countries])
-md_output = ds.Output(data=ds.md("This is an example of a `dstack` application with multiple controls and outputs."))
-countries_output = ds.Output(handler=country_output_handler, label="Companies", depends=[countries])
-company_chart = ds.Output(handler=company_output_handler, depends=[companies])
+countries = app.select(handler=countries_handler, label="Country", depends=[regions])
+companies = app.select(handler=get_companies_by_country, label="Company", depends=[countries])
+_ = app.markdown(text="This is an example of a `dstack` application with multiple controls and outputs.")
+countries_output = app.output(handler=country_output_handler, label="Companies", depends=[countries])
+company_chart = app.output(handler=company_output_handler, depends=[companies])
 
-app = ds.app(controls=[regions, countries, companies],
-             outputs=[md_output, countries_output, company_chart])
-
-url = ds.push("outputs", app)
+url = app.deploy("outputs")
 print(url)

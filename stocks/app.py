@@ -1,4 +1,3 @@
-import dstack.controls as ctrl
 import dstack as ds
 import plotly.express as px
 
@@ -8,12 +7,14 @@ def get_data():
     return px.data.stocks()
 
 
-def output_handler(self, ticker):
+def output_handler(self, ticker: ds.Select):
     self.data = px.line(get_data(), x='date', y=ticker.value())
 
 
-app = ds.app(controls=[(ctrl.ComboBox(items=get_data().columns[1:].tolist()))],
-             outputs=[(ctrl.Output(handler=output_handler))])
+app = ds.app()
 
-result = ds.push("stocks", app)
+ticker = app.select(items=get_data().columns[1:].tolist())
+output = app.output(handler=output_handler, depends=[ticker])
+
+result = app.deploy("stocks")
 print(result.url)

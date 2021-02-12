@@ -1,10 +1,10 @@
 import pandas as pd
-import dstack.controls as ctrl
+import dstack as ds
 
 from utils.fake_utils import random_names, random_genders, random_dates
 
 
-def fake_handler(self: ctrl.Output):
+def fake_handler(self: ds.Output):
     size = 100
     df = pd.DataFrame(columns=['First', 'Last', 'Gender', 'Birthdate'])
     df['First'] = random_names('first_names', size)
