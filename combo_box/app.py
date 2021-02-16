@@ -19,8 +19,10 @@ def countries_handler(self: ds.Select, regions: ds.Select):
 
 app = ds.app()
 
-regions = app.select(items=get_regions, label="Region")
-countries = app.select(handler=countries_handler, label="Country", multiple=True, depends=[regions])
+sidebar = app.sidebar()
+
+regions = sidebar.select(items=get_regions, label="Region")
+countries = sidebar.select(handler=countries_handler, label="Country", multiple=True, depends=[regions])
 
 
 def output_handler(self: ds.Output, countries: ds.Select):
@@ -28,7 +30,7 @@ def output_handler(self: ds.Output, countries: ds.Select):
     self.data = df[df["Country"].isin(countries.value())]
 
 
-output = app.output(handler=output_handler, depends=[countries])
+output = app.output(handler=output_handler, depends=[countries], columns=6)
 
 result = app.deploy("combo_box")
 print(result.url)

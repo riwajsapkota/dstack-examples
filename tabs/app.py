@@ -23,8 +23,10 @@ def countries_handler(self: ds.Select, regions: ds.Select):
 
 companies_tab = app.tab("Companies")
 
-regions = companies_tab.select(items=get_regions, label="Region")
-countries = companies_tab.select(handler=countries_handler, label="Country", depends=[regions])
+sidebar = companies_tab.sidebar()
+
+regions = sidebar.select(items=get_regions, label="Region")
+countries = sidebar.select(handler=countries_handler, label="Country", depends=[regions])
 
 
 def country_output_handler(self: ds.Output, countries: ds.Select):

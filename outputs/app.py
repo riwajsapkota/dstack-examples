@@ -16,7 +16,9 @@ def get_regions():
 
 app = ds.app()
 
-regions = app.select(items=get_regions, label="Region")
+sidebar = app.sidebar()
+
+regions = sidebar.select(items=get_regions, label="Region")
 
 
 def countries_handler(self: ds.Select, regions: ds.Select):
@@ -48,11 +50,14 @@ def company_output_handler(self: ds.Output, companies: ds.Select):
     self.label = company
 
 
-countries = app.select(handler=countries_handler, label="Country", depends=[regions])
-companies = app.select(handler=get_companies_by_country, label="Company", depends=[countries])
-_ = app.markdown(text="This is an example of a `dstack` application with multiple controls and outputs.")
-countries_output = app.output(handler=country_output_handler, label="Companies", depends=[countries])
-company_chart = app.output(handler=company_output_handler, depends=[companies])
+countries = sidebar.select(handler=countries_handler, label="Country", depends=[regions])
+companies = sidebar.select(handler=get_companies_by_country, label="Company", depends=[countries])
+_ = app.markdown(text="This is an example of a `dstack` application with multiple controls and outputs.",
+                 columns=12)
+countries_output = app.output(handler=country_output_handler, label="Companies", depends=[countries],
+                              columns=6, rows=6)
+company_chart = app.output(handler=company_output_handler, depends=[companies],
+                           columns=6, rows=6)
 
 url = app.deploy("outputs")
 print(url)
