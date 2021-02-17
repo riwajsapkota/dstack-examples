@@ -52,12 +52,9 @@ def company_output_handler(self: ds.Output, companies: ds.Select):
 
 countries = sidebar.select(handler=countries_handler, label="Country", depends=[regions])
 companies = sidebar.select(handler=get_companies_by_country, label="Company", depends=[countries])
-_ = app.markdown(text="This is an example of a `dstack` application with multiple controls and outputs.",
-                 columns=12)
-countries_output = app.output(handler=country_output_handler, label="Companies", depends=[countries],
-                              columns=6, rows=6)
-company_chart = app.output(handler=company_output_handler, depends=[companies],
-                           columns=6, rows=6)
+_ = app.markdown(text="This is an example of a `dstack` application with multiple controls and outputs.")
+countries_output = app.output(handler=country_output_handler, label="Companies", depends=[countries])
+company_chart = app.output(handler=company_output_handler, depends=[companies])
 
 url = app.deploy("outputs")
 print(url)

@@ -30,7 +30,7 @@ def output_handler(self: ds.Output, countries: ds.Select):
     self.data = df[df["Country"].isin(countries.value())]
 
 
-output = app.output(handler=output_handler, depends=[countries], columns=6)
+output = app.output(handler=output_handler, depends=[countries], colspan=6)
 
 result = app.deploy("combo_box")
 print(result.url)
