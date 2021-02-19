@@ -41,5 +41,5 @@ def output_handler(self, countries):
 app.output(handler=output_handler, depends=[countries])
 
 # deploy the application with the name "controls/select_depends" and print its URL
-url = app.deploy("controls/select_depends.py")
+url = app.deploy("controls/select_depends")
 print(url)
