@@ -32,5 +32,5 @@ def output_handler(self: ds.Output, countries: ds.Select):
 
 output = app.output(handler=output_handler, depends=[countries], colspan=6)
 
-result = app.deploy("combo_box")
+result = app.deploy("select_and_cache")
 print(result.url)

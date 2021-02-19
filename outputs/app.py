@@ -18,7 +18,7 @@ app = ds.app()
 
 sidebar = app.sidebar()
 
-regions = sidebar.select(items=get_regions, label="Region")
+regions = sidebar.select(items=get_regions, label="Region", colspan=12, rowspan=7)
 
 
 def countries_handler(self: ds.Select, regions: ds.Select):

@@ -2,7 +2,7 @@ import dstack as ds
 import pandas as pd
 
 
-def app_handler(self: ds.Output, uploader: ds.Uploader):
+def app_handler(self, uploader):
     if len(uploader.uploads) > 0:
         with uploader.uploads[0].open() as f:
             self.label = uploader.uploads[0].file_name
