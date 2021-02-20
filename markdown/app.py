@@ -1,27 +1,10 @@
 import dstack as ds
-import plotly.express as px
 
+app = ds.app()  # create an instance of the application
 
-@ds.cache()
-def get_data():
-    return px.data.stocks()
+# a markdown output
+app.markdown(text="Hello, **World!**")
 
-
-def ticker_handler(self: ds.Select):
-    self.items = get_data().columns[1:].tolist()
-
-
-def output_handler(self, ticker: ds.Select):
-    self.data = px.line(get_data(), x='date', y=ticker.value())
-
-
-app = ds.app()
-
-ticker = app.select(handler=ticker_handler)
-
-_ = app.markdown(text="Here's a simple application"
-                      " with **Markdown** and a chart.")
-_ = app.output(handler=output_handler)
-
-result = ds.push("markdown", app)
-print(result.url)
+# deploy the application with the name "markdown" and print its URL
+url = app.deploy("markdown")
+print(url)
