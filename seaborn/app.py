@@ -10,7 +10,7 @@ def my_handler(self: ds.Output):
 
 app = ds.app()
 
-_ = app.output(handler=my_handler)
+app.output(handler=my_handler)
 
-url = app.deploy("outputs")
+url = app.deploy("seaborn")
 print(url)

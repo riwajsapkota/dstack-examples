@@ -1,26 +1,29 @@
 import dstack as ds
 import plotly.express as px
 
+app = ds.app()  # create an instance of the application
 
-@ds.cache()
+
+# an utility function that loads the data
 def get_data():
     return px.data.stocks()
 
 
-def symbols_handler(self: ds.Select):
-    print("Calling symbols_handler")
-    self.items = get_data().columns[1:].tolist()
+# a drop-down control that shows stock symbols
+stock = app.select(items=get_data().columns[1:].tolist())
 
 
-def output_handler(self, ticker: ds.Select):
-    print("Calling output_handler")
-    self.data = px.line(get_data(), x='date', y=ticker.value())
+# a handler that updates the plot based on the selected stock
+def output_handler(self, stock):
+    print("Log a message")
+    symbol = stock.value()  # the selected stock
+    # a plotly line chart where the X axis is date and Y is the stock's price
+    self.data = px.line(get_data(), x='date', y=symbol)
 
 
-app = ds.app()
+# a plotly chart output
+app.output(output_handler, depends=[stock])
 
-ticker = app.select(handler=symbols_handler)
-_ = app.output(handler=output_handler)
-
-result = app.deploy("logs")
-print(result.url)
+# deploy the application with the name "stocks" and print its URL
+url = app.deploy("stocks_logs")
+print(url)
