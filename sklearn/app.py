@@ -1,76 +1,50 @@
 import dstack as ds
+import numpy as np
 import pandas as pd
 
 
 def get_model():
-    return ds.pull("sklearn_model")
-
-
-def transform(X, countries, sectors):
-    def n_years(row):
-        l = [row["y2019"], row["y2018"], row["y2017"], row["y2016"], row["y2015"]]
-        return len([x for x in l if x != 0])
-
-    X = X.copy()
-    X["nyears"] = X.apply(n_years, axis=1)
-
-    X = X.drop(["Company", "Region", "Manager", "Churn", "RenewalMonth", "RenewalDate"], axis=1)
-
-    year_col = ["y2015", "y2016", "y2017", "y2018", "y2019"]
-
-    for col in year_col:
-        X[col] = X[col] / X[col].max()
-
-    for c in countries:
-        X[c] = X["Country"].apply(lambda x: 1 if x == c else 0)
-
-    for s in sectors:
-        if s:
-            X[s] = X["Sector"].apply(lambda x: 1 if x == s else 0)
-
-    X = X.drop(["Country", "Sector"], axis=1)
-    return X
+    return ds.pull("tutorials/sklearn_model")
 
 
 @ds.cache()
 def get_data():
     df = pd.read_csv("https://www.dropbox.com/s/cat8vm6lchlu5tp/data.csv?dl=1", index_col=0)
-
-    countries = df["Country"].unique()
-    sectors = df["Sector"].unique()
-
-    x1 = df[df["RenewalMonth"] >= 10].copy()
-    x1a = transform(x1, countries, sectors)
-    return x1, x1a
+    df = df[df["Churn"].isnull()].drop(["Churn"], axis=1)
+    return df
 
 
-x1, x1a = get_data()
+@ds.cache()
+def get_predicted_data():
+    df = get_data().copy()
+
+    predicted_churn = get_model().predict(df)
+
+    df["Predicted Churn"] = np.array(list(map(lambda x: "Yes" if x == 1.0 else "No", predicted_churn)))
+    df["RenewalMonth"] = df["RenewalMonth"].apply(lambda x: months[x - 1])
+
+    return df.drop(["y2015", "y2016", "y2017", "y2018", "y2019"], axis=1)
+
 
 months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
 app = ds.app()
 
-regions_ctrl = app.select(x1["Region"].unique().tolist(), label="Region")
+regions_ctrl = app.select(get_data()["Region"].unique().tolist(), label="Region")
 months_ctrl = app.select(['Oct', 'Nov', 'Dec'], label="Month")
 churn_ctrl = app.checkbox(label="Churn", selected=True)
 
 
-def app_handler(self: ds.Output, regions_ctrl: ds.Select, months_ctrl: ds.Select, churn_ctrl: ds.Checkbox):
-    x1, x1a = get_data()
-    y1_pred = get_model().predict(x1a)
-    data = x1.copy()
-    data["Predicted Churn"] = y1_pred
-    data["Predicted Churn"] = data["Predicted Churn"].apply(lambda x: "Yes" if x == 1.0 else "No")
-    data["RenewalMonth"] = data["RenewalMonth"].apply(lambda x: months[x - 1])
-    data = data.drop(["y2015", "y2016", "y2017", "y2018", "y2019", "Churn"], axis=1)
+def app_handler(self, regions_ctrl, months_ctrl, churn_ctrl):
+    df = get_predicted_data().copy()
 
-    data = data[(data["Predicted Churn"] == ("Yes" if churn_ctrl.selected else "No"))]
-    data = data[(data["Region"] == regions_ctrl.value())]
-    data = data[(data["RenewalMonth"] == months_ctrl.value())]
-    self.data = data
+    df = df[(df["Predicted Churn"] == ("Yes" if churn_ctrl.selected else "No"))]
+    df = df[(df["Region"] == regions_ctrl.value())]
+    df = df[(df["RenewalMonth"] == months_ctrl.value())]
+    self.data = df
 
 
-_ = app.output(handler=app_handler, depends=[regions_ctrl, months_ctrl, churn_ctrl])
+app.output(handler=app_handler, depends=[regions_ctrl, months_ctrl, churn_ctrl])
 
 url = app.deploy("sklearn")
 print(url)
