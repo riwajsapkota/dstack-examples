@@ -22,7 +22,7 @@ def output_handler(self, stock):
 
 
 # a plotly chart output
-app.output(output_handler, depends=[stock])
+app.output(handler=output_handler, depends=[stock])
 
 # deploy the application with the name "stocks" and print its URL
 url = app.deploy("stocks_logs")

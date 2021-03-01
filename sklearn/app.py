@@ -14,6 +14,9 @@ def get_data():
     return df
 
 
+months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
+
 @ds.cache()
 def get_predicted_data():
     df = get_data().copy()
@@ -25,8 +28,6 @@ def get_predicted_data():
 
     return df.drop(["y2015", "y2016", "y2017", "y2018", "y2019"], axis=1)
 
-
-months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
 app = ds.app()
 
