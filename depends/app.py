@@ -12,6 +12,6 @@ app = ds.app(depends=["handlers", "utils"], requirements="requirements.txt")
 # an output with a handler from one of the modules the application depends on
 app.output(handler=fake_handler)
 
-# deploy the application with the name "stocks" and print its URL
+# deploy the application with the names of individuals
 url = app.deploy("faker")
 print(url)
